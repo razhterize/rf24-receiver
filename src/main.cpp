@@ -21,16 +21,13 @@ const long timeoutTime = 2000;
 void split(float a);
 void write_flash(String flash_data);
 void read_flash();
-// void get_time();
 RF24 rv(2, 15);
-// RTC_DS3231 rtc;
 uint8_t address[][6] = {"Node1", "Node2"};
 
 float data;
 int addr;
 unsigned long prevMillis;
 
-// DHT get temp dan humid
 float sph;
 float stemps;
 float stempd;
@@ -62,9 +59,6 @@ void setup()
   Serial.println(WiFi.localIP());
   ///////////////////////////////////////////////////
 
-  // DateTime test = rtc.now();
-  // char time_now[30];
-  // sprintf(time_now, "%i-%i-%i %i:%i:%i", test.year(), test.month(), test.day(), test.hour(), test.minute(), test.second());
   while (!rv.begin())
   {
     Serial.println("RF24 Init failed!");
@@ -114,11 +108,11 @@ void loop()
     }
     else if (addr == 2)
     {
-      sph = data;
+      stemps = data;
     }
     else if (addr == 3)
     {
-      stemps = data;
+      sph = data;
     }
     else if (addr == 4)
     {
@@ -169,32 +163,6 @@ void loop()
         return;
       }
     }
-
-    // Baca hasil balasan dari PHP
-    // while (client.available())
-    // {
-    //   String line = client.readStringUntil('\r');
-    //   Serial.println(line);
-    //   Serial.println("ph kolam 1");
-    //   Serial.println(sph);
-    //   Serial.println("Suhu kolam 1 : ");
-    //   Serial.println(stemps);
-
-    //   Serial.println("Suhu kolam 2 : ");
-    //   Serial.println(stempd);
-    //   Serial.println("Suhu kolam 3 : ");
-    //   Serial.println(stempt);
-    //   Serial.println("Jarak Pakan : ");
-    //   Serial.println(sfd);
-    //   Serial.println("Ketinggian Air Kolam 1 : ");
-    //   Serial.println(swd);
-    //   Serial.println("Water Flow Kolam 1 : ");
-    //   Serial.println(swf);
-    //   Serial.println("==========================");
-    // }
-    ////////////////////////////////////////////////////////////////////
-    // read_flash();
-    // get_time();
   }
 }
 
@@ -225,9 +193,3 @@ void read_flash()
   }
   file.close();
 }
-
-// void get_time(){
-//   DateTime current = rtc.now();
-//   Serial.println(current.hour());
-//   Serial.println(current.minute());
-// }

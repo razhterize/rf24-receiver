@@ -30,6 +30,15 @@ float data;
 int addr;
 unsigned long prevMillis;
 
+// DHT get temp dan humid
+float sph;
+float stemps;
+float stempd;
+float stempt;
+float sfd;
+float swd = random(60, 75);
+float swf = random(60, 90);
+
 void setup()
 {
   Serial.begin(115200);
@@ -97,6 +106,29 @@ void loop()
     write = String(data, 2);
     write_flash(write);
   }
+  if (addr != 0)
+  {
+    if (addr == 1)
+    {
+      sfd = data;
+    }
+    else if (addr == 2)
+    {
+      sph = data;
+    }
+    else if (addr == 3)
+    {
+      stemps = data;
+    }
+    else if (addr == 4)
+    {
+      stempd = data;
+    }
+    else if (addr == 5)
+    {
+      stempt = data;
+    }
+  }
   if (millis() - prevMillis >= 10000)
   {
     prevMillis = millis();
@@ -108,15 +140,6 @@ void loop()
       Serial.println("Connection failed");
       return;
     }
-
-    // DHT get temp dan humid
-    float sph = random(6, 8);
-    float stemps = random(26, 29);
-    float stempd = random(26, 29);
-    float stempt = random(26, 29);
-    float sfd = random(50, 55);
-    float swd = random(60, 75);
-    float swf = random(60, 90);
 
     // /nodemcuphp/index.php?mode=save&vph=20&vtemps=20&vtempd=20&vtempt=20&vfd=20&vwd=20&vwf=20
     String apiUrl = "/api/index.php?";
@@ -156,7 +179,7 @@ void loop()
     //   Serial.println(sph);
     //   Serial.println("Suhu kolam 1 : ");
     //   Serial.println(stemps);
-    
+
     //   Serial.println("Suhu kolam 2 : ");
     //   Serial.println(stempd);
     //   Serial.println("Suhu kolam 3 : ");

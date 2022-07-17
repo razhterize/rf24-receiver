@@ -134,6 +134,10 @@ void split(float a)
   data = s.substring(1).toFloat();
 }
 
+// Write Flash (String flash_data, String name)
+// Nulis data ke EEPROM, data String (text), nama file Name
+// Ex: write_flash(data, "sensor.txt"), data = pembacaan sensor (harus String), nama file "sensor.txt"
+
 void write_flash(String flash_data, String name)
 {
   File file = LittleFS.open(name, "a");
@@ -145,6 +149,11 @@ void write_flash(String flash_data, String name)
   file.close();
 }
 
+/*
+  Read Flash (String name), baca flash pake while loop, selama masih ada baris selanjutnya. String name buat nama file
+  hasilnya ntar String a, mau buat apa terserah
+
+*/
 void read_flash(String name)
 {
   File file = LittleFS.open(name, "r");

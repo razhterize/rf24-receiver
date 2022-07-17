@@ -19,15 +19,15 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 ///////////////////////////////////////////////////
 void split(float a);
-void write_flash(String flash_data);
-void read_flash();
+void write_flash(String flash_data, String name);
+void read_flash(String name);
 RF24 rv(2, 15);
 uint8_t address[][6] = {"Node1", "Node2"};
 
-float data;
+bool status = false;
 int addr;
 unsigned long prevMillis;
-
+float data;
 float sph;
 float stemps;
 float stempd;
@@ -85,7 +85,6 @@ void loop()
   uint8_t pipe;
   if (rv.available(&pipe))
   {
-    String write = "";
     rv.read(&data, sizeof(data));
     split(data);
     Serial.print(F("Received "));
@@ -97,8 +96,6 @@ void loop()
     Serial.print("Address: ");
     Serial.println(addr);
     Serial.print("\n");
-    write = String(data, 2);
-    write_flash(write);
   }
   if (addr != 0)
   {
@@ -127,42 +124,6 @@ void loop()
   {
     prevMillis = millis();
     ////////////////////////////////////////////////////////////////////
-    WiFiClient client;
-
-    if (!client.connect(host, port))
-    {
-      Serial.println("Connection failed");
-      return;
-    }
-
-    // /nodemcuphp/index.php?mode=save&vph=20&vtemps=20&vtempd=20&vtempt=20&vfd=20&vwd=20&vwf=20
-    String apiUrl = "/api/index.php?";
-    apiUrl += "mode=save";
-    apiUrl += "&vph=" + String(sph);
-    apiUrl += "&vtemps=" + String(stemps);
-    apiUrl += "&vtempd=" + String(stempd);
-    apiUrl += "&vtempt=" + String(stempt);
-    apiUrl += "&vfd=" + String(sfd);
-    apiUrl += "&vwd=" + String(swd);
-    apiUrl += "&vwf=" + String(swf);
-
-    // Set header Request
-    client.print(String("GET ") + apiUrl + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" +
-                 "Connection: close\r\n\r\n");
-
-    // Pastikan tidak berlarut-larut
-    unsigned long timeout = millis();
-    while (client.available() == 0)
-    {
-      if (millis() - timeout > 3000)
-      {
-        Serial.println(">>> Client Timeout !");
-        Serial.println(">>> Operation failed !");
-        client.stop();
-        return;
-      }
-    }
   }
 }
 
@@ -173,9 +134,9 @@ void split(float a)
   data = s.substring(1).toFloat();
 }
 
-void write_flash(String flash_data)
+void write_flash(String flash_data, String name)
 {
-  File file = LittleFS.open("/sensor_log.txt", "a");
+  File file = LittleFS.open(name, "a");
   if (file)
   {
     file.print(flash_data);
@@ -184,12 +145,66 @@ void write_flash(String flash_data)
   file.close();
 }
 
-void read_flash()
+void read_flash(String name)
 {
-  File file = LittleFS.open("/sensor_log.txt", "r");
+  File file = LittleFS.open(name, "r");
   while (file.available())
   {
-    Serial.println(file.readString());
+    String a = file.readStringUntil('\n');
+    
   }
   file.close();
+}
+
+void server_check(){
+  WiFiClient client;
+  String write = "";
+
+  if (!client.connect(host, port))
+  {
+    status = true;
+    Serial.println("Connection failed");
+    write = String(sph) + "," + String(stemps) + "," + String(stempd) + "," + String(stempt) + "," + String(sfd) + "," + String(swd) + "," + String(swf) + ",";
+    write_flash(write, "log.txt");
+    return;
+  }
+
+  if (status == true){
+    read_flash("log.txt");
+  }
+
+  send_to_server();
+}
+
+void send_to_server(){
+  WiFiClient client;
+
+  // /nodemcuphp/index.php?mode=save&vph=20&vtemps=20&vtempd=20&vtempt=20&vfd=20&vwd=20&vwf=20
+  String apiUrl = "/api/index.php?";
+  apiUrl += "mode=save";
+  apiUrl += "&vph=" + String(sph);
+  apiUrl += "&vtemps=" + String(stemps);
+  apiUrl += "&vtempd=" + String(stempd);
+  apiUrl += "&vtempt=" + String(stempt);
+  apiUrl += "&vfd=" + String(sfd);
+  apiUrl += "&vwd=" + String(swd);
+  apiUrl += "&vwf=" + String(swf);
+
+  // Set header Request
+  client.print(String("GET ") + apiUrl + " HTTP/1.1\r\n" +
+                "Host: " + host + "\r\n" +
+                "Connection: close\r\n\r\n");
+
+  // Pastikan tidak berlarut-larut
+  unsigned long timeout = millis();
+  while (client.available() == 0)
+  {
+    if (millis() - timeout > 3000)
+    {
+      Serial.println(">>> Client Timeout !");
+      Serial.println(">>> Operation failed !");
+      client.stop();
+      return;
+    }
+  }
 }
